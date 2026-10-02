@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shops — trainer</title>
+<style>
+/* Цвета меняются здесь */
+:root{--acc:#3a4bb8;--soft:#e3e6f8;--bg:#f5f6f8;--ink:#1d2433;--ok:#17703a;--okbg:#def3e5;--bad:#a8281c;--badbg:#fbe3e0;--line:#cfd6e0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.45 "Trebuchet MS","Segoe UI",Verdana,sans-serif}
+#app{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:clamp(30px,6vw,46px);margin:8px 0 4px;color:var(--acc);letter-spacing:.5px}
+.sub{margin:0 0 18px;color:#52607a}
+button{font:inherit;cursor:pointer;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:12px 16px;min-height:48px}
+button:hover:not(:disabled){border-color:var(--acc)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.pri{background:var(--acc);color:#fff;border-color:var(--acc)}
+.pri:hover:not(:disabled){filter:brightness(1.1)}
+.ghost{background:transparent}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.card{display:grid;grid-template-columns:48px 1fr;grid-template-rows:auto auto auto;column-gap:12px;text-align:left;padding:14px;border-radius:10px}
+.card .num{grid-row:1/4;align-self:center;font-size:30px;font-weight:700;color:#fff;background:var(--acc);border-radius:10px;height:48px;width:48px;text-align:center;line-height:48px}
+.card small{color:#52607a}.stars{color:#d99a00;font-size:22px;letter-spacing:2px}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.bar .sp{flex:1}.pill{background:var(--soft);color:var(--acc);font-weight:700;padding:8px 14px;border-radius:20px}
+.box{background:#fff;border:2px solid var(--line);border-radius:12px;padding:20px;text-align:center}
+.big{font-size:clamp(30px,7vw,48px);font-weight:700;margin:6px 0 12px;word-break:break-word}
+.def{font-size:clamp(20px,4vw,26px);margin:6px 0 14px}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:12px}
+.opt{font-size:20px;min-height:60px}
+.ok{background:var(--okbg)!important;border-color:var(--ok)!important;color:var(--ok)!important;font-weight:700}
+.bad{background:var(--badbg)!important;border-color:var(--bad)!important;color:var(--bad)!important}
+.opt:disabled{cursor:default;opacity:1}
+.fb{min-height:34px;margin:14px 0 6px;font-size:20px;font-weight:700;text-align:center}
+.fb.ok{background:none!important;border:0!important}.fb.bad{background:none!important;border:0!important}
+.nx{display:block;margin:0 auto;min-width:200px}
+.slots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:10px 0 16px}
+.slot{min-width:38px;height:50px;border-bottom:4px solid var(--acc);font-size:34px;font-weight:700;line-height:50px;text-align:center}
+.slot.fix{border:0;min-width:20px}.slot.sp{border:0;min-width:16px}
+.slot.ok{background:none!important}.slot.bad{background:none!important}
+.tiles{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.tile{min-width:54px;height:58px;font-size:28px;font-weight:700;padding:0 10px}
+.dict{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.it{background:#fff;border:2px solid var(--line);border-radius:10px;padding:12px;display:flex;gap:10px;align-items:center}
+.it b{font-size:22px;display:block}.it span{color:#52607a;font-size:16px}
+.hide .it span{visibility:hidden}.it div{flex:1}
+input[type=text]{font:inherit;font-size:28px;text-align:center;width:100%;max-width:420px;padding:10px;border:3px solid var(--line);border-radius:10px}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.final{text-align:center}.final .stars{font-size:56px}
+.note{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#1d2433;color:#fff;padding:12px 18px;border-radius:10px;display:none;max-width:90%;z-index:9}
+</style></head><body><div id="app"></div>
+<script>
+/* ===== СЛОВА =====
+   Чтобы добавить слово, вставьте новую строку в массив WORDS по образцу:
+   {word:"cat", translation:"кот", definition:"A small pet that says meow.", emoji:""},
+   Чтобы изменить — правьте текст в кавычках. Эмодзи для 5 класса не показываются (поле оставлено на будущее).
+   Всё остальное на сайте строится автоматически из этого массива. */
+const WORDS=[
+{word:"baker's",translation:"пекарня",definition:"You buy bread and cakes here.",emoji:""},
+{word:"bookshop",translation:"книжный магазин",definition:"You buy books here.",emoji:""},
+{word:"car shop",translation:"автосалон",definition:"You buy a new car here.",emoji:""},
+{word:"chemist's",translation:"аптека",definition:"You buy medicine here.",emoji:""},
+{word:"clothes shop",translation:"магазин одежды",definition:"You buy shirts, trousers and dresses here.",emoji:""},
+{word:"department store",translation:"универмаг",definition:"It is a very big shop with many floors and many things.",emoji:""},
+{word:"fish shop",translation:"рыбный магазин",definition:"You buy fresh fish here.",emoji:""},
+{word:"fishing shop",translation:"магазин для рыбалки",definition:"You buy things for fishing here, like rods and hooks.",emoji:""},
+{word:"game shop",translation:"магазин игр",definition:"You buy computer games here.",emoji:""},
+{word:"greengrocer's",translation:"овощной магазин",definition:"You buy fruit and vegetables here.",emoji:""},
+{word:"hat shop",translation:"магазин шляп",definition:"You buy caps and hats here.",emoji:""},
+{word:"newsagent's",translation:"газетный киоск",definition:"You buy newspapers and magazines here.",emoji:""},
+{word:"pet shop",translation:"зоомагазин",definition:"You buy food and toys for cats and dogs here.",emoji:""},
+{word:"shoe shop",translation:"обувной магазин",definition:"You buy trainers and boots here.",emoji:""},
+{word:"sports shop",translation:"спортивный магазин",definition:"You buy a football or sports clothes here.",emoji:""},
+{word:"toy shop",translation:"магазин игрушек",definition:"You buy dolls and teddy bears here.",emoji:""}
+];
+const TOPIC="Shops";
+const KEY="trainer_shops_v1";          // ключ сохранения звёзд в localStorage
+const RATE=0.85;              // скорость озвучки (меньше = медленнее)
+const LEVELS=[["Dictionary","Словарик"],["Word → Definition","Слово → определение"],["Definition → Word","Определение → слово"],["Listen → Word","Аудио → слово"],["Missing letter","Пропущенная буква"],["Build the word","Собери слово"],["Dictation","Диктант"]];
+const PRAISE=["Great!","Well done!","Super!","Excellent!","Perfect!"],OOPS=["Not quite.","Almost!","Let's try again later."];
+
+const $=s=>document.querySelector(s),app=$("#app");
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=a=>a[Math.random()*a.length|0];
+const isL=c=>/[a-z]/i.test(c);
+function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function btn(x,c,f){const b=el("button",c,x);b.onclick=f;return b}
+function norm(s){return s.toLowerCase().replace(/[’']/g,"").replace(/-/g," ").replace(/\s+/g," ").trim()}
+
+/* ===== Сохранение (с защитой от ошибок) ===== */
+let progress={};try{progress=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(progress))}catch(e){}}
+
+/* ===== Озвучка ===== */
+const canSpeak="speechSynthesis" in window&&"SpeechSynthesisUtterance" in window;let voice=null,playTok=0;
+function pickVoice(){if(!canSpeak)return;const v=speechSynthesis.getVoices();voice=v.find(x=>x.lang==="en-US")||v.find(x=>(x.lang||"").indexOf("en")===0)||null}
+if(canSpeak){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+function note(m){let n=$("#note");if(!n){n=el("div","note");n.id="note";document.body.appendChild(n)}n.textContent=m;n.style.display="block";clearTimeout(n.t);n.t=setTimeout(()=>n.style.display="none",4000)}
+function say(t,done){if(!canSpeak){note("Озвучка не поддерживается в этом браузере. Попробуйте Chrome или Edge.");return}
+ try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=RATE;if(voice)u.voice=voice;if(done)u.onend=done;speechSynthesis.speak(u)}catch(e){note("Не удалось включить звук.")}}
+function stopSay(){playTok++;if(canSpeak)try{speechSynthesis.cancel()}catch(e){}}
+const spk=t=>btn("🔊 Listen","ghost",()=>say(t));
+
+/* ===== Главная ===== */
+function home(){stopSay();app.innerHTML="";
+ app.append(el("h1","",TOPIC),el("p","sub","Choose a level. Выбери уровень — можно в любом порядке."));
+ const g=el("div","grid");
+ LEVELS.forEach((l,i)=>{const s=progress[i]||0,c=el("button","card");
+  const st=el("span","stars","★".repeat(s)+"☆".repeat(3-s));st.setAttribute("aria-label","Stars: "+s+" of 3");
+  c.append(el("span","num",i+1),el("b","",l[0]),el("small","",l[1]),st);c.onclick=()=>start(i);g.append(c)});
+ app.append(g)}
+
+/* ===== Уровень 1: словарик ===== */
+function dict(){stopSay();app.innerHTML="";
+ if(progress[0]!==3){progress[0]=3;save()}
+ const bar=el("div","bar"),list=el("div","dict");let show=true;
+ const tg=btn("Hide definitions","ghost",()=>{show=!show;list.classList.toggle("hide",!show);tg.textContent=show?"Hide definitions":"Show definitions"});
+ const pa=btn("▶ Play all","pri",()=>{const t=++playTok;const go=i=>{if(t!==playTok||i>=WORDS.length)return;say(WORDS[i].word,()=>setTimeout(()=>go(i+1),400))};go(0)});
+ bar.append(btn("← Menu","ghost",home),pa,btn("■ Stop","ghost",stopSay),tg);
+ WORDS.forEach(w=>{const it=el("div","it"),d=el("div");d.append(el("b","",w.word),el("span","",w.definition));it.append(d,btn("🔊","ghost",()=>say(w.word)));it.lastChild.setAttribute("aria-label","Listen: "+w.word);list.append(it)});
+ app.append(el("h1","","Dictionary"),bar,list)}
+
+/* ===== Движок уровней ===== */
+let S;
+function start(i){if(i===0)return dict();stopSay();S={lv:i,q:shuffle(WORDS),done:0,first:0,seen:new Set(),n:WORDS.length};next()}
+function next(){stopSay();if(!S.q.length)return finish();S.w=S.q.shift();S.lock=false;app.innerHTML="";
+ const bar=el("div","bar"),p=el("span","pill","0"),sc=el("span","pill","");p.id="prog";sc.id="score";
+ bar.append(btn("← Menu","ghost",home),el("span","sp"),p,sc);
+ const box=el("div","box");box.id="box";const fb=el("div","fb");fb.id="fb";fb.setAttribute("aria-live","polite");
+ app.append(el("h2","",LEVELS[S.lv][0]),bar,box,fb);upd();
+ [null,qWD,qDW,qAud,qMiss,qBuild,qDict][S.lv]()}
+function upd(){$("#prog").textContent=S.done+" / "+S.n;$("#score").textContent="✓ "+S.first}
+function result(ok){const w=S.w;S.lock=true;
+ if(!S.seen.has(w.word)){S.seen.add(w.word);if(ok)S.first++}
+ if(ok)S.done++;else S.q.push(w);upd();
+ const fb=$("#fb");fb.className="fb "+(ok?"ok":"bad");
+ fb.textContent=ok?"✓ "+pick(PRAISE):"✗ "+pick(OOPS)+" Correct: "+w.word;
+ const n=btn(S.q.length?"Next →":"Finish","pri nx",next);app.append(n);n.focus()}
+function opts(prompt,label,wordOpts){const w=S.w,box=$("#box"),row=el("div","opts");
+ const list=shuffle([w,...shuffle(WORDS.filter(x=>x!==w)).slice(0,3)]),bs=[];
+ list.forEach(o=>{const b=btn(label(o),"opt",()=>{if(S.lock)return;const ok=o===w;
+  bs.forEach(x=>x.b.disabled=true);b.classList.add(ok?"ok":"bad");b.prepend(ok?"✓ ":"✗ ");
+  if(!ok){const c=bs.find(x=>x.o===w).b;c.classList.add("ok");c.prepend("✓ ")}result(ok)});bs.push({o,b});row.append(b)});
+ box.append(...prompt,row)}
+/* 2: слово → дефиниция */
+function qWD(){const w=S.w;opts([el("div","big",w.word),spk(w.word)],o=>o.definition);}
+/* 3: дефиниция → слово */
+function qDW(){opts([el("div","def",S.w.definition)],o=>o.word)}
+/* 4: аудио → слово */
+function qAud(){const w=S.w;opts([el("div","def","Listen and choose the word."),btn("🔊 Repeat","pri",()=>say(w.word))],o=>o.word);setTimeout(()=>say(w.word),300)}
+/* 5: пропущенная буква (для слов от 8 букв — две) */
+function qMiss(){const w=S.w,t=w.word,box=$("#box");
+ const idx=[...t].map((c,i)=>isL(c)?i:-1).filter(i=>i>=0),nb=idx.length>=8?2:1;
+ const bl=shuffle(idx).slice(0,nb).sort((a,b)=>a-b),need=bl.map(i=>t[i].toLowerCase());
+ const set=new Set(need),al="abcdefghijklmnopqrstuvwxyz";while(set.size<5)set.add(al[Math.random()*26|0]);
+ const slots=el("div","slots"),sp=[];
+ [...t].forEach((c,i)=>{const s=el("span","slot"+(bl.includes(i)?"":c===" "?" sp":" fix"),bl.includes(i)?"":c);sp.push(s);slots.append(s)});
+ const row=el("div","tiles");let cur=0;
+ shuffle([...set]).forEach(l=>{const b=btn(l,"tile",()=>{if(S.lock)return;
+  if(l===need[cur]){const s=sp[bl[cur]];s.textContent=t[bl[cur]];s.classList.add("ok");cur++;b.classList.add("ok");if(cur===nb){row.querySelectorAll("button").forEach(x=>x.disabled=true);result(true)}}
+  else{b.classList.add("bad");b.prepend("✗ ");row.querySelectorAll("button").forEach(x=>x.disabled=true);
+   bl.slice(cur).forEach(i=>{sp[i].textContent=t[i];sp[i].classList.add("bad")});result(false)}});row.append(b)});
+ box.append(el("div","def",w.definition),spk(t),slots,row)}
+/* 6: собери слово */
+function qBuild(){const w=S.w,t=w.word,box=$("#box"),L=[...t].filter(isL).map(c=>c.toLowerCase());
+ let tl=shuffle(L.map((c,i)=>({c,i})));for(let k=0;k<5&&L.length>1&&tl.map(x=>x.c).join("")===L.join("");k++)tl=shuffle(tl);
+ let ans=[];const area=el("div");
+ function draw(){area.innerHTML="";const slots=el("div","slots");let k=0;
+  [...t].forEach(c=>{if(isL(c)){const a=ans[k++];slots.append(el("span","slot",a?a.c:""))}else slots.append(el("span","slot "+(c===" "?"sp":"fix"),c===" "?"":c))});
+  const tiles=el("div","tiles");
+  tl.forEach(x=>{const b=btn(x.c,"tile",()=>{if(S.lock||ans.includes(x))return;ans.push(x);draw();if(ans.length===L.length)check()});b.disabled=ans.includes(x)||S.lock;tiles.append(b)});
+  const ctl=el("div","row");ctl.append(btn("⌫ Erase","ghost",()=>{if(!S.lock){ans.pop();draw()}}),btn("↺ Start again","ghost",()=>{if(!S.lock){ans=[];draw()}}));
+  area.append(slots,tiles,ctl)}
+ function check(){const ok=ans.map(x=>x.c).join("")===L.join("");S.lock=true;draw();
+  area.querySelectorAll(".slot:not(.fix):not(.sp)").forEach(s=>{s.classList.add(ok?"ok":"bad");s.prepend(ok?"✓":"✗")});
+  if(!ok)area.querySelector(".slots").after(el("div","def","→ "+t));result(ok)}
+ box.append(el("div","def",w.definition),spk(t),area);draw()}
+/* 7: диктант */
+function qDict(){const w=S.w,box=$("#box"),inp=el("input");inp.type="text";inp.autocomplete="off";inp.autocapitalize="off";inp.spellcheck=false;inp.setAttribute("aria-label","Type the word");
+ const hint=el("div","def","");
+ const go=()=>{if(S.lock)return;const ok=norm(inp.value)===norm(w.word);inp.disabled=true;inp.classList.add(ok?"ok":"bad");result(ok)};
+ inp.onkeydown=e=>{if(e.key==="Enter")go()};
+ const row=el("div","row");row.append(btn("🔊 Repeat","pri",()=>say(w.word)),btn("💡 Hint","ghost",()=>{hint.textContent="Starts with: "+w.word[0].toUpperCase()}),btn("Check ✓","pri",go));
+ box.append(el("div","def","Listen and write the word."),row,inp,hint);setTimeout(()=>{say(w.word);inp.focus()},300)}
+
+/* ===== Финал ===== */
+function finish(){stopSay();app.innerHTML="";const p=S.first/S.n,st=p>=.9?3:p>=.7?2:1;
+ if(st>(progress[S.lv]||0)){progress[S.lv]=st;save()}
+ const b=el("div","box final");
+ b.append(el("h2","","Level complete!"),el("div","def","Correct at first try: "+S.first+" / "+S.n),el("div","stars","★".repeat(st)+"☆".repeat(3-st)),
+  el("p","",st===3?"Fantastic work!":st===2?"Good job! Practise a little more.":"Nice try! Do it again — you can do better."));
+ const r=el("div","row");r.append(btn("↺ Try again","pri",()=>start(S.lv)));
+ if(S.lv<LEVELS.length-1)r.append(btn("Next level →","pri",()=>start(S.lv+1)));
+ r.append(btn("Menu","ghost",home));b.append(r);app.append(b)}
+home();
+</script></body></html>
